@@ -13,11 +13,11 @@ services:
         value: "10000"
 
   # Frontend Service
-  - type: static
+  - type: web
     name: vpn-frontend
     runtime: static
     buildCommand: cd frontend && npm install && npm run build
-    publishDirectory: frontend/build
+    staticPublishPath: ./frontend/build
     envVars:
       - key: REACT_APP_API_URL
         fromService:

@@ -20,10 +20,7 @@ services:
     staticPublishPath: ./frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        fromService:
-          name: vpn-backend
-          type: web
-          property: url
+        value: "https://vpn-backend.onrender.com"
     routes:
       - type: rewrite
         source: /*

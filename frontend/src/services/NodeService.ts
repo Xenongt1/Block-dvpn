@@ -1,16 +1,19 @@
 import io from 'socket.io-client';
 import axios from 'axios';
 
-// Update API URL to match Node.js backend port (3006)
-const API_URL = 'http://' + window.location.hostname + ':3006/api';
-const socket = io('http://' + window.location.hostname + ':3006', {
-  transports: ['websocket', 'polling'],
+// Use environment variables for API and WebSocket URLs
+const API_URL = process.env.REACT_APP_API_URL || 'https://vpn-backend.onrender.com/api';
+const WS_URL = process.env.REACT_APP_WS_URL || 'wss://vpn-backend.onrender.com';
+
+const socket = io(WS_URL, {
+  transports: ['websocket'],
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
   timeout: 20000,
   autoConnect: true,
-  forceNew: true
+  forceNew: true,
+  secure: true
 });
 
 // Add connection event listeners

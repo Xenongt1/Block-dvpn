@@ -39,7 +39,8 @@ export class VPNService {
       throw new Error('Provider is required');
     }
     this.provider = provider;
-    this.vpnNodeUrl = vpnNodeUrl;
+    // Ensure HTTPS
+    this.vpnNodeUrl = vpnNodeUrl.replace('http://', 'https://');
     this.userId = userId;
   }
 

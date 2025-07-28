@@ -17,8 +17,8 @@ services:
     name: vpn-frontend
     runtime: node
     plan: free
-    buildCommand: cd frontend && npm install && npm run build
+    buildCommand: cd frontend && npm install --legacy-peer-deps && npm run build
     startCommand: npx serve -s frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        value: "https://vpn-backend-ma2x.onrender.com" 
+        value: "https://vpn-backend-yolj.onrender.com" 

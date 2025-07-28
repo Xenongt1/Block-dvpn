@@ -143,15 +143,18 @@ class NodeService {
   async getNodeDetails(address: string): Promise<{ friendlyName: string; country: string } | null> {
     try {
       console.log(`Fetching details for node: ${address}`);  // Debug log
-      const response = await axios.get(`${API_URL}/nodes/${address}`);
+      const response = await axios.get(`${API_URL}/api/nodes/${address}`);
       console.log(`API Response:`, response.data);  // Debug log
       return {
-        friendlyName: response.data.friendly_name,
-        country: response.data.country
+        friendlyName: response.data.friendly_name || 'Hold on there',
+        country: response.data.country || 'Hold on there'
       };
     } catch (error) {
       console.error('Error fetching node details:', error);
-      return null;
+      return {
+        friendlyName: 'Hold on there',
+        country: 'Hold on there'
+      };
     }
   }
 }

@@ -77,8 +77,11 @@ export class VPNService {
         userId: this.userId
       });
 
-      // Try HTTPS first, then fallback to HTTP if HTTPS fails
+      // Try both HTTPS and HTTP
       let response;
+      let error: Error | null = null;
+
+      // First try HTTPS
       try {
         const httpsUrl = this.vpnNodeUrl.replace('http://', 'https://');
         response = await axios.post(`${httpsUrl}/generate-peer`, {
@@ -90,23 +93,33 @@ export class VPNService {
           },
           timeout: 10000
         });
-      } catch (error) {
-        console.log('HTTPS failed, trying HTTP:', error);
-        // If HTTPS fails, try HTTP
-        const httpUrl = this.vpnNodeUrl.replace('https://', 'http://');
-        response = await axios.post(`${httpUrl}/generate-peer`, {
-          user_id: this.userId
-        }, {
-          headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          timeout: 10000
-        });
+      } catch (e) {
+        error = e instanceof Error ? e : new Error('Unknown error during HTTPS attempt');
+        console.log('HTTPS attempt failed:', error.message);
       }
 
-      if (response.status !== 200) {
-        throw new Error(response.data.error || 'Failed to generate VPN configuration');
+      // If HTTPS failed, try HTTP
+      if (!response) {
+        try {
+          const httpUrl = this.vpnNodeUrl.replace('https://', 'http://');
+          response = await axios.post(`${httpUrl}/generate-peer`, {
+            user_id: this.userId
+          }, {
+            headers: { 
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            timeout: 10000
+          });
+        } catch (e) {
+          error = e instanceof Error ? e : new Error('Unknown error during HTTP attempt');
+          console.log('HTTP attempt failed:', error.message);
+        }
+      }
+
+      // If both attempts failed
+      if (!response) {
+        throw error || new Error('Failed to connect to VPN node');
       }
 
       const result = response.data as VPNNodeResponse;

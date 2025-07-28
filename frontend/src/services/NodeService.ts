@@ -139,11 +139,11 @@ class NodeService {
     }
   }
 
-  // Add this new function to get node details
+  // Get node details
   async getNodeDetails(address: string): Promise<{ friendlyName: string; country: string } | null> {
     try {
       console.log(`Fetching details for node: ${address}`);  // Debug log
-      const response = await axios.get(`${API_URL}/api/nodes/${address}`);
+      const response = await axios.get(`${API_URL}/nodes/${address}`);
       console.log(`API Response:`, response.data);  // Debug log
       return {
         friendlyName: response.data.friendly_name || 'Hold on there',

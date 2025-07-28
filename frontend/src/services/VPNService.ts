@@ -72,55 +72,27 @@ export class VPNService {
         throw new Error('No active subscription found. Please subscribe to use the VPN service.');
       }
 
+      // Extract IP from vpnNodeUrl
+      const nodeIP = this.vpnNodeUrl.replace('http://', '').replace('https://', '').split(':')[0];
+      
       console.log('Getting VPN configuration from node:', {
-        nodeUrl: this.vpnNodeUrl,
+        nodeIP,
         userId: this.userId
       });
 
-      // Try both HTTPS and HTTP
-      let response;
-      let error: Error | null = null;
-
-      // First try HTTPS
-      try {
-        const httpsUrl = this.vpnNodeUrl.replace('http://', 'https://');
-        response = await axios.post(`${httpsUrl}/generate-peer`, {
-          user_id: this.userId
-        }, {
-          headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          timeout: 10000
-        });
-      } catch (e) {
-        error = e instanceof Error ? e : new Error('Unknown error during HTTPS attempt');
-        console.log('HTTPS attempt failed:', error.message);
-      }
-
-      // If HTTPS failed, try HTTP
-      if (!response) {
-        try {
-          const httpUrl = this.vpnNodeUrl.replace('https://', 'http://');
-          response = await axios.post(`${httpUrl}/generate-peer`, {
-            user_id: this.userId
-          }, {
-            headers: { 
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            },
-            timeout: 10000
-          });
-        } catch (e) {
-          error = e instanceof Error ? e : new Error('Unknown error during HTTP attempt');
-          console.log('HTTP attempt failed:', error.message);
-        }
-      }
-
-      // If both attempts failed
-      if (!response) {
-        throw error || new Error('Failed to connect to VPN node');
-      }
+      // Use backend proxy
+      const API_URL = process.env.REACT_APP_API_URL || 'https://vpn-backend-esxb.onrender.com/api';
+      const baseUrl = API_URL.replace('/api', '');
+      
+      const response = await axios.post(`${baseUrl}/vpn-node/generate-peer?nodeIP=${nodeIP}`, {
+        user_id: this.userId
+      }, {
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 10000
+      });
 
       const result = response.data as VPNNodeResponse;
       
@@ -164,15 +136,20 @@ export class VPNService {
 
   async deletePeer(): Promise<void> {
     try {
-      const response = await fetch(`${this.vpnNodeUrl}/delete-peer`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          user_id: this.userId 
-        })
+      // Extract IP from vpnNodeUrl
+      const nodeIP = this.vpnNodeUrl.replace('http://', '').replace('https://', '').split(':')[0];
+      
+      // Use backend proxy
+      const API_URL = process.env.REACT_APP_API_URL || 'https://vpn-backend-esxb.onrender.com/api';
+      const baseUrl = API_URL.replace('/api', '');
+      
+      const response = await axios.post(`${baseUrl}/vpn-node/delete-peer?nodeIP=${nodeIP}`, {
+        user_id: this.userId
+      }, {
+        headers: { 'Content-Type': 'application/json' }
       });
 
-      if (!response.ok) {
+      if (!response.data || response.status !== 200) {
         throw new Error('Failed to delete peer configuration');
       }
     } catch (error) {

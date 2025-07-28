@@ -74,30 +74,17 @@ app.use(express.json());
 // Proxy middleware for VPN nodes
 app.use('/vpn-node', createProxyMiddleware({
   router: async (req) => {
-    // Extract node IP from request body
     const nodeIP = req.body?.node_ip;
     if (!nodeIP) {
       throw new Error('Node IP is required in request body');
     }
-    const target = `http://${nodeIP}:8000`;
-    console.log('Proxying to target:', target);
-    return target;
+    return `http://${nodeIP}:8000`;
   },
   changeOrigin: true,
-  secure: false, // Accept self-signed certificates
-  pathRewrite: {
-    '^/vpn-node': '', // Remove the /vpn-node prefix when forwarding
-  },
+  secure: false,
+  ws: true,
+  xfwd: true,
   onProxyReq: (proxyReq, req, res) => {
-    // Log the proxy request
-    console.log('Proxying request:', {
-      method: req.method,
-      path: req.path,
-      nodeIP: req.body?.node_ip,
-      headers: req.headers
-    });
-    
-    // Handle POST data
     if (req.body) {
       const bodyData = JSON.stringify(req.body);
       proxyReq.setHeader('Content-Type', 'application/json');
@@ -105,16 +92,9 @@ app.use('/vpn-node', createProxyMiddleware({
       proxyReq.write(bodyData);
     }
   },
-  onProxyRes: (proxyRes, req, res) => {
-    // Log the proxy response
-    console.log('Proxy response:', {
-      statusCode: proxyRes.statusCode,
-      headers: proxyRes.headers
-    });
-  },
   onError: (err, req, res) => {
     console.error('Proxy error:', err);
-    res.status(500).json({ error: 'Failed to connect to VPN node', details: err.message });
+    res.status(500).json({ error: 'Failed to connect to VPN node' });
   }
 }));
 

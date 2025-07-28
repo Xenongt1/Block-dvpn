@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import { getContracts } from '../config/contracts';
+import axios from 'axios';
 
 interface VPNConfig {
   config: string;
@@ -39,8 +40,8 @@ export class VPNService {
       throw new Error('Provider is required');
     }
     this.provider = provider;
-    // Ensure HTTPS
-    this.vpnNodeUrl = vpnNodeUrl.replace('http://', 'https://');
+    // Ensure HTTPS and port 443
+    this.vpnNodeUrl = vpnNodeUrl.replace('http://', 'https://').replace(':8000', '');
     this.userId = userId;
   }
 
@@ -69,20 +70,18 @@ export class VPNService {
       }
 
       // Get VPN configuration from node
-      const response = await fetch(`${this.vpnNodeUrl}/generate-peer`, {
-        method: 'POST',
+      const response = await axios.post(`${this.vpnNodeUrl}/generate-peer`, {
+        user_id: this.userId
+      }, {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          user_id: this.userId 
-        })
+        timeout: 10000 // 10 second timeout
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate VPN configuration');
+      if (response.status !== 200) {
+        throw new Error(response.data.error || 'Failed to generate VPN configuration');
       }
 
-      const result = await response.json() as VPNNodeResponse;
+      const result = response.data as VPNNodeResponse;
       
       // Extract the node address from the response
       const extractedNodeAddress = result.nodeAddress || result.peer_id || '';

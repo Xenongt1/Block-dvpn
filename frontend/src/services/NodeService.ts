@@ -2,7 +2,7 @@ import io from 'socket.io-client';
 import axios from 'axios';
 
 // Use environment variables for API and WebSocket URLs
-const API_URL = process.env.REACT_APP_API_URL || 'https://vpn-backend.onrender.com/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://vpn-backend.onrender.com';
 const WS_URL = process.env.REACT_APP_WS_URL || 'wss://vpn-backend.onrender.com';
 
 const socket = io(WS_URL, {
@@ -140,7 +140,7 @@ class NodeService {
   async getNodeDetails(address: string): Promise<{ friendlyName: string; country: string } | null> {
     try {
       console.log(`Fetching details for node: ${address}`);  // Debug log
-      const response = await axios.get(`${API_URL}/nodes/${address}`);
+      const response = await axios.get(`${API_URL}/api/nodes/${address}`);
       console.log(`API Response:`, response.data);  // Debug log
       return {
         friendlyName: response.data.friendly_name,

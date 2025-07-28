@@ -1,0 +1,34 @@
+services:
+  # Frontend Service
+  - type: static
+    name: vpn-frontend
+    buildCommand: cd frontend && npm install && npm run build
+    publishDirectory: frontend/build
+    envVars:
+      - key: REACT_APP_API_URL
+        fromService:
+          name: vpn-backend
+          type: web
+          property: url
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  # Backend Service
+  - type: web
+    name: vpn-backend
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: DATABASE_URL
+        value: "./dvpn.db"
+      # Add these to your Render dashboard securely:
+      # - VPN_PUBLIC_KEY
+      # - VPN_PRIVATE_KEY
+      # - API_KEY 

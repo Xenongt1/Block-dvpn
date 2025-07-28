@@ -1,0 +1,22 @@
+# WireGuard configuration files
+/etc/wireguard/*.key
+/etc/wireguard/*.conf
+
+# Generated peer configurations
+output/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# OS
+.DS_Store
+Thumbs.db 

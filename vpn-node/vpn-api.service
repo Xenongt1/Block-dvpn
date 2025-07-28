@@ -1,0 +1,13 @@
+[Unit]
+Description=VPN Node API Service
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/vpn-node
+Environment=PATH=/opt/vpn-node/venv/bin:$PATH
+ExecStart=/opt/vpn-node/venv/bin/python main.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target 

@@ -1,0 +1,59 @@
+[Interface]
+PrivateKey = 6O6uLcb7MCYcM6ZHv2qDHCv+AGJMPhlLBiwA0GSzvEA=
+Address = 10.0.0.100/24
+DNS = 1.1.1.1, 8.8.8.8
+
+[Peer]
+PublicKey = /ah9E7YXR1T9B1U9Xjqgf29VAkggI/vskXsiMXIT/BA=
+Endpoint = 35.197.230.164:51820
+AllowedIPs = 0.0.0.0/0
+PersistentKeepalive = 25
+6. Test step by step
+On your laptop:
+
+bash
+# Connect to VPN
+# Then test connectivity step by step:
+
+# 1. Can you reach the VPN server?
+ping 10.0.0.1
+
+# 2. Can you reach internet IPs?
+ping 8.8.8.8
+
+# 3. Can you resolve DNS?
+nslookup google.com
+
+# 4. Can you browse?
+curl google.com
+7. If still having issues, check your server's network interface
+bash
+# Verify your external interface name
+ip route show default
+# Look for the interface name (might not be ens4)
+
+# If it's different, update the iptables rule:
+# sudo iptables -t nat -D POSTROUTING -o ens4 -j MASQUERADE
+# sudo iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -o YOUR_INTERFACE -j MASQUERADE
+8. Alternative: Temporary fix for testing
+If you just want to test basic VPN connectivity without full internet routing:
+
+Update your client config to only route VPN traffic:
+
+[Interface]
+PrivateKey = 6O6uLcb7MCYcM6ZHv2qDHCv+AGJMPhlLBiwA0GSzvEA=
+Address = 10.0.0.100/24
+DNS = 1.1.1.1
+
+[Peer]
+PublicKey = /ah9E7YXR1T9B1U9Xjqgf29VAkggI/vskXsiMXIT/BA=
+Endpoint = 35.197.230.164:51820
+AllowedIPs = 10.0.0.0/24
+PersistentKeepalive = 25
+This will only route VPN network traffic (10.0.0.0/24) through the tunnel, keeping your regular internet connection intact.
+
+
+
+
+
+

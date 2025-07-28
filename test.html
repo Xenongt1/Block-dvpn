@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WireGuard Peer Generator Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WireGuard Peer Generator Test</h1>
+        <div class="form-group">
+            <label for="userId">User ID:</label>
+            <input type="text" id="userId" placeholder="Enter user ID">
+        </div>
+        <button onclick="generatePeer()">Generate Peer</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function generatePeer() {
+            const userId = document.getElementById('userId').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!userId) {
+                resultDiv.innerHTML = '<div class="error">Please enter a user ID</div>';
+                return;
+            }
+
+            try {
+                resultDiv.innerHTML = 'Generating peer configuration...';
+                
+                const response = await fetch('http://35.197.230.164:8000/generate-peer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: userId
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                // Format the result nicely
+                const formattedResult = `
+Peer Generated Successfully!
+
+Configuration:
+${data.config}
+
+Peer ID: ${data.peer_id}
+`;
+                
+                resultDiv.innerHTML = formattedResult;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html> 

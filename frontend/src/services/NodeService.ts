@@ -2,8 +2,8 @@ import io from 'socket.io-client';
 import axios from 'axios';
 
 // Use environment variables for API and WebSocket URLs
-const API_URL = process.env.REACT_APP_API_URL || 'https://vpn-backend.onrender.com/api';
-const WS_URL = process.env.REACT_APP_WS_URL || 'wss://vpn-backend.onrender.com';
+const API_URL = process.env.REACT_APP_API_URL || 'https://vpn-backend-esxb.onrender.com/api';
+const WS_URL = process.env.REACT_APP_WS_URL || 'wss://vpn-backend-esxb.onrender.com';
 
 const socket = io(WS_URL, {
   transports: ['websocket', 'polling'],

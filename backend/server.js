@@ -45,10 +45,10 @@ app.use(express.json());
 // Proxy middleware for VPN nodes
 app.use('/vpn-node', createProxyMiddleware({
   router: async (req) => {
-    // Extract node IP from request
-    const nodeIP = req.query.nodeIP;
+    // Extract node IP from request body
+    const nodeIP = req.body?.node_ip;
     if (!nodeIP) {
-      throw new Error('Node IP is required');
+      throw new Error('Node IP is required in request body');
     }
     return `http://${nodeIP}:8000`;
   },
@@ -58,7 +58,15 @@ app.use('/vpn-node', createProxyMiddleware({
   },
   onProxyReq: (proxyReq, req, res) => {
     // Log the proxy request
-    console.log('Proxying request to:', req.query.nodeIP);
+    console.log('Proxying request to:', req.body?.node_ip);
+    
+    // Handle POST data
+    if (req.body) {
+      const bodyData = JSON.stringify(req.body);
+      proxyReq.setHeader('Content-Type', 'application/json');
+      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+      proxyReq.write(bodyData);
+    }
   },
   onError: (err, req, res) => {
     console.error('Proxy error:', err);

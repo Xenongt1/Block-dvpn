@@ -40,11 +40,8 @@ export class VPNService {
       throw new Error('Provider is required');
     }
     this.provider = provider;
-    // Keep original protocol (http or https)
-    this.vpnNodeUrl = vpnNodeUrl;
-    if (!this.vpnNodeUrl.includes(':8000')) {
-      this.vpnNodeUrl += ':8000';
-    }
+    // Extract IP from vpnNodeUrl
+    this.vpnNodeUrl = vpnNodeUrl.replace('http://', '').replace('https://', '').split(':')[0];
     this.userId = userId;
   }
 
@@ -72,11 +69,8 @@ export class VPNService {
         throw new Error('No active subscription found. Please subscribe to use the VPN service.');
       }
 
-      // Extract IP from vpnNodeUrl
-      const nodeIP = this.vpnNodeUrl.replace('http://', '').replace('https://', '').split(':')[0];
-      
       console.log('Getting VPN configuration from node:', {
-        nodeIP,
+        nodeIP: this.vpnNodeUrl,
         userId: this.userId
       });
 
@@ -84,8 +78,9 @@ export class VPNService {
       const API_URL = process.env.REACT_APP_API_URL || 'https://vpn-backend-esxb.onrender.com/api';
       const baseUrl = API_URL.replace('/api', '');
       
-      const response = await axios.post(`${baseUrl}/vpn-node/generate-peer?nodeIP=${nodeIP}`, {
-        user_id: this.userId
+      const response = await axios.post(`${baseUrl}/vpn-node/generate-peer`, {
+        user_id: this.userId,
+        node_ip: this.vpnNodeUrl
       }, {
         headers: { 
           'Content-Type': 'application/json',
@@ -136,15 +131,13 @@ export class VPNService {
 
   async deletePeer(): Promise<void> {
     try {
-      // Extract IP from vpnNodeUrl
-      const nodeIP = this.vpnNodeUrl.replace('http://', '').replace('https://', '').split(':')[0];
-      
       // Use backend proxy
       const API_URL = process.env.REACT_APP_API_URL || 'https://vpn-backend-esxb.onrender.com/api';
       const baseUrl = API_URL.replace('/api', '');
       
-      const response = await axios.post(`${baseUrl}/vpn-node/delete-peer?nodeIP=${nodeIP}`, {
-        user_id: this.userId
+      const response = await axios.post(`${baseUrl}/vpn-node/delete-peer`, {
+        user_id: this.userId,
+        node_ip: this.vpnNodeUrl
       }, {
         headers: { 'Content-Type': 'application/json' }
       });

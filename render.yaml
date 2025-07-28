@@ -50,7 +50,7 @@ services:
     plan: free
     env: node@16.20.0
     buildCommand: cd frontend && npm install --legacy-peer-deps && CI=false npm run build
-    startCommand: npx serve -s frontend/build
+    startCommand: cd frontend && PORT=10000 npx serve -s build
     envVars:
       - key: REACT_APP_API_URL
         value: "https://vpn-backend-esxb.onrender.com/api"

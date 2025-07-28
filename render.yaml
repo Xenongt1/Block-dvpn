@@ -4,7 +4,7 @@ services:
     name: vpn-backend
     runtime: node
     plan: free
-    nodeVersion: 16.20.0
+    env: node@16.20.0
     buildCommand: cd backend && npm install
     startCommand: cd backend && node server.js
     envVars:
@@ -18,9 +18,9 @@ services:
     name: vpn-frontend
     runtime: node
     plan: free
-    nodeVersion: 16.20.0
+    env: node@16.20.0
     buildCommand: cd frontend && npm install --legacy-peer-deps && CI=false npm run build
     startCommand: npx serve -s frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        value: "https://vpn-backend-yolj.onrender.com" 
+        value: "https://vpn-backend.onrender.com" 

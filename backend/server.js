@@ -12,25 +12,31 @@ const axios = require('axios');
 const app = express();
 const server = http.createServer(app);
 
+const corsOrigin = process.env.CORS_ORIGIN || 'https://vpn-frontend-esxb.onrender.com';
+
 // Configure Socket.IO with proper CORS and transport options
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: corsOrigin,
     methods: ["GET", "POST"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"]
   },
   transports: ['websocket', 'polling'],
   pingTimeout: 60000,
-  pingInterval: 25000
+  pingInterval: 25000,
+  path: '/socket.io/',
+  allowEIO3: true,
+  maxHttpBufferSize: 1e8
 });
 
 // Configure Express CORS
 app.use(cors({
-  origin: "*",
+  origin: corsOrigin,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true,
+  maxAge: 86400
 }));
 
 app.use(express.json());

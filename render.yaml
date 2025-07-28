@@ -12,6 +12,21 @@ services:
         value: production
       - key: PORT
         value: "10000"
+      - key: CORS_ORIGIN
+        value: "https://vpn-frontend-esxb.onrender.com"
+    headers:
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: "https://vpn-frontend-esxb.onrender.com"
+      - path: /*
+        name: Access-Control-Allow-Methods
+        value: "GET, POST, OPTIONS"
+      - path: /*
+        name: Access-Control-Allow-Headers
+        value: "Content-Type, Authorization"
+      - path: /*
+        name: Access-Control-Allow-Credentials
+        value: "true"
 
   # Frontend Service
   - type: web
@@ -23,7 +38,9 @@ services:
     startCommand: npx serve -s frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        value: "https://vpn-backend.onrender.com"
+        value: "https://vpn-backend.onrender.com/api"
+      - key: REACT_APP_WS_URL
+        value: "wss://vpn-backend.onrender.com"
       - key: REACT_APP_NETWORK_ID
         value: "11155111"
       - key: REACT_APP_NETWORK_NAME

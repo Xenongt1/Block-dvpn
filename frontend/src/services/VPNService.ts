@@ -40,8 +40,11 @@ export class VPNService {
       throw new Error('Provider is required');
     }
     this.provider = provider;
-    // Ensure HTTPS and port 443
-    this.vpnNodeUrl = vpnNodeUrl.replace('http://', 'https://').replace(':8000', '');
+    // Keep original protocol (http or https)
+    this.vpnNodeUrl = vpnNodeUrl;
+    if (!this.vpnNodeUrl.includes(':8000')) {
+      this.vpnNodeUrl += ':8000';
+    }
     this.userId = userId;
   }
 
@@ -69,13 +72,38 @@ export class VPNService {
         throw new Error('No active subscription found. Please subscribe to use the VPN service.');
       }
 
-      // Get VPN configuration from node
-      const response = await axios.post(`${this.vpnNodeUrl}/generate-peer`, {
-        user_id: this.userId
-      }, {
-        headers: { 'Content-Type': 'application/json' },
-        timeout: 10000 // 10 second timeout
+      console.log('Getting VPN configuration from node:', {
+        nodeUrl: this.vpnNodeUrl,
+        userId: this.userId
       });
+
+      // Try HTTPS first, then fallback to HTTP if HTTPS fails
+      let response;
+      try {
+        const httpsUrl = this.vpnNodeUrl.replace('http://', 'https://');
+        response = await axios.post(`${httpsUrl}/generate-peer`, {
+          user_id: this.userId
+        }, {
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          timeout: 10000
+        });
+      } catch (error) {
+        console.log('HTTPS failed, trying HTTP:', error);
+        // If HTTPS fails, try HTTP
+        const httpUrl = this.vpnNodeUrl.replace('https://', 'http://');
+        response = await axios.post(`${httpUrl}/generate-peer`, {
+          user_id: this.userId
+        }, {
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          timeout: 10000
+        });
+      }
 
       if (response.status !== 200) {
         throw new Error(response.data.error || 'Failed to generate VPN configuration');

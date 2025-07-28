@@ -1,7 +1,21 @@
 services:
+  # Backend Service (Define this first)
+  - type: web
+    name: vpn-backend
+    runtime: node
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+
   # Frontend Service
   - type: static
     name: vpn-frontend
+    runtime: static
     buildCommand: cd frontend && npm install && npm run build
     publishDirectory: frontend/build
     envVars:
@@ -13,16 +27,4 @@ services:
     routes:
       - type: rewrite
         source: /*
-        destination: /index.html
-
-  # Backend Service
-  - type: web
-    name: vpn-backend
-    env: node
-    buildCommand: cd backend && npm install
-    startCommand: cd backend && node server.js
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: "10000" 
+        destination: /index.html 

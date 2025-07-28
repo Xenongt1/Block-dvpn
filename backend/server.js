@@ -15,7 +15,7 @@ const server = http.createServer(app);
 // Configure Socket.IO with proper CORS and transport options
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:3000", "http://localhost:3001"],
+    origin: "*",
     methods: ["GET", "POST"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"]
@@ -27,7 +27,7 @@ const io = new Server(server, {
 
 // Configure Express CORS
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001"],
+  origin: "*",
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -36,11 +36,12 @@ app.use(cors({
 app.use(express.json());
 
 // Initialize SQLite database
-const db = new sqlite3.Database('./dvpn.db', (err) => {
+const dbPath = path.join(__dirname, 'dvpn.db');
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err);
   } else {
-    console.log('Connected to SQLite database');
+    console.log('Connected to SQLite database at:', dbPath);
     // Create pending_nodes table if it doesn't exist
     db.run(`CREATE TABLE IF NOT EXISTS pending_nodes (
       address TEXT PRIMARY KEY,

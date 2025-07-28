@@ -13,14 +13,13 @@ services:
         value: "10000"
 
   # Frontend Service
-  - type: web
+  - type: static
     name: vpn-frontend
-    runtime: static
     buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: ./frontend/build
+    publishDirectory: frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        value: "https://vpn-backend.onrender.com"
+        value: "https://vpn-backend-ma2x.onrender.com"
     routes:
       - type: rewrite
         source: /*

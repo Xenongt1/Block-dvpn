@@ -15,11 +15,26 @@ const server = http.createServer(app);
 
 const corsOrigin = process.env.CORS_ORIGIN || 'https://vpn-frontend-esxb.onrender.com';
 
+// Configure Content Security Policy
+app.use((req, res, next) => {
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self';" +
+    "img-src 'self' data: https:;" +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval';" +
+    "style-src 'self' 'unsafe-inline';" +
+    "connect-src 'self' https: wss:;" +
+    "frame-src 'self';" +
+    "font-src 'self' data:;"
+  );
+  next();
+});
+
 // Configure Socket.IO with proper CORS and transport options
 const io = new Server(server, {
   cors: {
     origin: corsOrigin,
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "OPTIONS"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"]
   },
@@ -35,10 +50,24 @@ const io = new Server(server, {
 app.use(cors({
   origin: corsOrigin,
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
-  maxAge: 86400
+  maxAge: 86400,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
+
+// Remove X-Powered-By header for security
+app.disable('x-powered-by');
+
+// Add security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
 
 app.use(express.json());
 

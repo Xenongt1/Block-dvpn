@@ -1,3 +1,38 @@
+/* Base styles */
+:root {
+  --primary-color: #1976d2;
+  --secondary-color: #dc004e;
+  --background-color: #ffffff;
+  --text-color: #000000;
+  --border-color: #e0e0e0;
+}
+
+/* High contrast mode support */
+@media (forced-colors: active) {
+  :root {
+    --primary-color: CanvasText;
+    --secondary-color: LinkText;
+    --background-color: Canvas;
+    --text-color: CanvasText;
+    --border-color: CanvasText;
+  }
+
+  /* Ensure buttons are visible */
+  button {
+    border: 2px solid CanvasText;
+  }
+
+  /* Ensure links are visible */
+  a {
+    color: LinkText;
+  }
+
+  /* Ensure icons are visible */
+  svg {
+    forced-color-adjust: auto;
+  }
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

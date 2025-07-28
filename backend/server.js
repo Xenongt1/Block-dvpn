@@ -79,15 +79,23 @@ app.use('/vpn-node', createProxyMiddleware({
     if (!nodeIP) {
       throw new Error('Node IP is required in request body');
     }
-    return `http://${nodeIP}:8000`;
+    const target = `http://${nodeIP}:8000`;
+    console.log('Proxying to target:', target);
+    return target;
   },
   changeOrigin: true,
+  secure: false, // Accept self-signed certificates
   pathRewrite: {
     '^/vpn-node': '', // Remove the /vpn-node prefix when forwarding
   },
   onProxyReq: (proxyReq, req, res) => {
     // Log the proxy request
-    console.log('Proxying request to:', req.body?.node_ip);
+    console.log('Proxying request:', {
+      method: req.method,
+      path: req.path,
+      nodeIP: req.body?.node_ip,
+      headers: req.headers
+    });
     
     // Handle POST data
     if (req.body) {
@@ -97,9 +105,16 @@ app.use('/vpn-node', createProxyMiddleware({
       proxyReq.write(bodyData);
     }
   },
+  onProxyRes: (proxyRes, req, res) => {
+    // Log the proxy response
+    console.log('Proxy response:', {
+      statusCode: proxyRes.statusCode,
+      headers: proxyRes.headers
+    });
+  },
   onError: (err, req, res) => {
     console.error('Proxy error:', err);
-    res.status(500).json({ error: 'Failed to connect to VPN node' });
+    res.status(500).json({ error: 'Failed to connect to VPN node', details: err.message });
   }
 }));
 
@@ -108,6 +123,7 @@ const dbPath = path.join(__dirname, 'dvpn.db');
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err);
+    process.exit(1); // Exit if we can't connect to the database
   } else {
     console.log('Connected to SQLite database at:', dbPath);
     // Create pending_nodes table if it doesn't exist
@@ -119,8 +135,32 @@ const db = new sqlite3.Database(dbPath, (err) => {
       country TEXT NOT NULL,
       submission_time DATETIME DEFAULT CURRENT_TIMESTAMP,
       status TEXT DEFAULT 'pending'
-    )`);
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating table:', err);
+        process.exit(1);
+      } else {
+        console.log('Database initialized successfully');
+      }
+    });
   }
+});
+
+// Handle database errors
+db.on('error', (err) => {
+  console.error('Database error:', err);
+});
+
+// Handle process termination
+process.on('SIGINT', () => {
+  db.close((err) => {
+    if (err) {
+      console.error('Error closing database:', err);
+    } else {
+      console.log('Database connection closed');
+    }
+    process.exit(0);
+  });
 });
 
 // Enhanced WebSocket connection handling
@@ -257,14 +297,19 @@ app.post('/api/nodes/:address/status', (req, res) => {
 app.get('/api/nodes/:address', (req, res) => {
   const { address } = req.params;
   
+  console.log('Getting node details for address:', address);
+  
   db.get(
-    'SELECT friendly_name, country FROM pending_nodes WHERE address = ? AND status = ?',
-    [address, 'approved'],
+    'SELECT friendly_name, country FROM pending_nodes WHERE address = ?',
+    [address],
     (err, row) => {
       if (err) {
+        console.error('Database error:', err);
         res.status(500).json({ error: err.message });
         return;
       }
+      
+      console.log('Node details found:', row);
       
       if (row) {
         res.json({

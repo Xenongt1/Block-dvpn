@@ -38,9 +38,9 @@ services:
     startCommand: npx serve -s frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        value: "https://vpn-backend.onrender.com/api"
+        value: "https://vpn-backend-esxb.onrender.com/api"
       - key: REACT_APP_WS_URL
-        value: "wss://vpn-backend.onrender.com"
+        value: "wss://vpn-backend-esxb.onrender.com"
       - key: REACT_APP_NETWORK_ID
         value: "11155111"
       - key: REACT_APP_NETWORK_NAME

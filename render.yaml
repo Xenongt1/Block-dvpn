@@ -23,4 +23,16 @@ services:
     startCommand: npx serve -s frontend/build
     envVars:
       - key: REACT_APP_API_URL
-        value: "https://vpn-backend.onrender.com" 
+        value: "https://vpn-backend.onrender.com"
+      - key: REACT_APP_NETWORK_ID
+        value: "11155111"
+      - key: REACT_APP_NETWORK_NAME
+        value: "Sepolia"
+      - key: REACT_APP_ENABLE_TESTNET
+        value: "true"
+      - key: REACT_APP_ALCHEMY_API_KEY
+        value: "tD_Fd_29bTD-uDOETIcu2"
+      - key: REACT_APP_VPN_REGISTRY_MAINNET
+        value: "0x103F744c4d064223AA0c6986d2465396F4F3e394"
+      - key: REACT_APP_VPN_SUBSCRIPTION_MAINNET
+        value: "0x516Fa3Ea215c372696e6D291F00f251f49904439" 

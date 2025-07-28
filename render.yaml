@@ -25,10 +25,4 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: "10000"
-      - key: DATABASE_URL
-        value: "./dvpn.db"
-      # Add these to your Render dashboard securely:
-      # - VPN_PUBLIC_KEY
-      # - VPN_PRIVATE_KEY
-      # - API_KEY 
+        value: "10000" 

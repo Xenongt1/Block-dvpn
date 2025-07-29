@@ -12,36 +12,6 @@ services:
         value: production
       - key: PORT
         value: "10000"
-      - key: CORS_ORIGIN
-        value: "https://vpn-frontend-esxb.onrender.com"
-    headers:
-      - path: /*
-        name: Access-Control-Allow-Origin
-        value: "https://vpn-frontend-esxb.onrender.com"
-      - path: /*
-        name: Access-Control-Allow-Methods
-        value: "GET, POST, OPTIONS"
-      - path: /*
-        name: Access-Control-Allow-Headers
-        value: "Content-Type, Authorization, X-Requested-With"
-      - path: /*
-        name: Access-Control-Allow-Credentials
-        value: "true"
-      - path: /*
-        name: X-Content-Type-Options
-        value: "nosniff"
-      - path: /*
-        name: X-Frame-Options
-        value: "SAMEORIGIN"
-      - path: /*
-        name: X-XSS-Protection
-        value: "1; mode=block"
-      - path: /*
-        name: Referrer-Policy
-        value: "strict-origin-when-cross-origin"
-      - path: /*
-        name: Content-Security-Policy
-        value: "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' https: wss:; frame-src 'self'; font-src 'self' data:;"
 
   # Frontend Service
   - type: web
@@ -50,7 +20,7 @@ services:
     plan: free
     env: node@16.20.0
     buildCommand: cd frontend && npm install --legacy-peer-deps && CI=false npm run build
-    startCommand: cd frontend && PORT=10000 npx serve -s build
+    startCommand: npx serve -s frontend/build
     envVars:
       - key: REACT_APP_API_URL
         value: "https://vpn-backend-esxb.onrender.com/api"

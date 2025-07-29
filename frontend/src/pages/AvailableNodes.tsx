@@ -60,7 +60,7 @@ interface VPNNode {
   uptime: number;
   reliability: number;
   totalScore: number;
-  country?: string;
+  country?: string | null;
   publicKey?: string;
   apiPort?: number;
   wireguardPort?: number;
@@ -69,7 +69,7 @@ interface VPNNode {
   owner?: string;
   isActive?: boolean;
   isRegistered?: boolean;
-  friendlyName?: string;
+  friendlyName?: string | null;
 }
 
 interface EthereumProvider {

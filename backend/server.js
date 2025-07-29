@@ -12,61 +12,26 @@ const axios = require('axios');
 const app = express();
 const server = http.createServer(app);
 
-const corsOrigin = process.env.CORS_ORIGIN || 'https://vpn-frontend-esxb.onrender.com';
-
-// Configure Content Security Policy
-app.use((req, res, next) => {
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self';" +
-    "img-src 'self' data: https:;" +
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval';" +
-    "style-src 'self' 'unsafe-inline';" +
-    "connect-src 'self' https: wss:;" +
-    "frame-src 'self';" +
-    "font-src 'self' data:;"
-  );
-  next();
-});
-
 // Configure Socket.IO with proper CORS and transport options
 const io = new Server(server, {
   cors: {
-    origin: corsOrigin,
-    methods: ["GET", "POST", "OPTIONS"],
+    origin: "*",
+    methods: ["GET", "POST"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"]
   },
   transports: ['websocket', 'polling'],
   pingTimeout: 60000,
-  pingInterval: 25000,
-  path: '/socket.io/',
-  allowEIO3: true,
-  maxHttpBufferSize: 1e8
+  pingInterval: 25000
 });
 
 // Configure Express CORS
 app.use(cors({
-  origin: corsOrigin,
+  origin: "*",
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true,
-  maxAge: 86400,
-  preflightContinue: false,
-  optionsSuccessStatus: 204
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
-
-// Remove X-Powered-By header for security
-app.disable('x-powered-by');
-
-// Add security headers
-app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  next();
-});
 
 app.use(express.json());
 
@@ -75,7 +40,6 @@ const dbPath = path.join(__dirname, 'dvpn.db');
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err);
-    process.exit(1); // Exit if we can't connect to the database
   } else {
     console.log('Connected to SQLite database at:', dbPath);
     // Create pending_nodes table if it doesn't exist
@@ -87,32 +51,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
       country TEXT NOT NULL,
       submission_time DATETIME DEFAULT CURRENT_TIMESTAMP,
       status TEXT DEFAULT 'pending'
-    )`, (err) => {
-      if (err) {
-        console.error('Error creating table:', err);
-        process.exit(1);
-      } else {
-        console.log('Database initialized successfully');
-      }
-    });
+    )`);
   }
-});
-
-// Handle database errors
-db.on('error', (err) => {
-  console.error('Database error:', err);
-});
-
-// Handle process termination
-process.on('SIGINT', () => {
-  db.close((err) => {
-    if (err) {
-      console.error('Error closing database:', err);
-    } else {
-      console.log('Database connection closed');
-    }
-    process.exit(0);
-  });
 });
 
 // Enhanced WebSocket connection handling

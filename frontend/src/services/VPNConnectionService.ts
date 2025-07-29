@@ -30,38 +30,13 @@ export class VPNConnectionService {
     }
   }
 
-  private async retryOperation<T>(
-    operation: () => Promise<T>,
-    maxRetries: number = 3,
-    delay: number = 1000
-  ): Promise<T> {
-    let lastError: any;
-    
-    for (let i = 0; i < maxRetries; i++) {
-      try {
-        return await operation();
-      } catch (error: any) {
-        lastError = error;
-        // Only retry on network-related errors
-        if (!error.message?.includes('Network Error') && 
-            !error.code?.includes('ERR_NETWORK')) {
-          throw error;
-        }
-        if (i < maxRetries - 1) {
-          await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
-        }
-      }
-    }
-    
-    throw lastError;
-  }
-
   public async connectToNode(nodeAddress: string, nodeIP: string, userAddress: string): Promise<VPNConfig> {
-    console.log('Getting VPN configuration from node:', { nodeAddress, nodeIP, userAddress });
+    console.log('🔄 Starting VPN connection process:', { nodeAddress, nodeIP, userAddress });
 
     try {
       // Try HTTPS first
       try {
+        console.log('📡 Attempting HTTPS connection to VPN node...');
         const response = await this.retryOperation(async () => {
           return await axios.post(`https://${nodeIP}:8000/generate-peer`, {
             user_id: userAddress
@@ -72,12 +47,18 @@ export class VPNConnectionService {
         });
 
         if (response.status === 200) {
+          console.log('✅ Successfully received VPN configuration via HTTPS:', {
+            configReceived: !!response.data.config,
+            peer_id: response.data.peer_id,
+            nodeIP: response.data.nodeIP
+          });
           return response.data;
         }
       } catch (httpsError) {
-        console.log('HTTPS attempt failed, trying HTTP:', httpsError);
+        console.log('⚠️ HTTPS attempt failed, trying HTTP:', httpsError);
         
         // Try HTTP as fallback
+        console.log('📡 Attempting HTTP connection to VPN node...');
         const response = await this.retryOperation(async () => {
           return await axios.post(`http://${nodeIP}:8000/generate-peer`, {
             user_id: userAddress
@@ -88,25 +69,66 @@ export class VPNConnectionService {
         });
 
         if (response.status === 200) {
+          console.log('✅ Successfully received VPN configuration via HTTP:', {
+            configReceived: !!response.data.config,
+            peer_id: response.data.peer_id,
+            nodeIP: response.data.nodeIP
+          });
           return response.data;
         }
       }
 
       throw new Error('Failed to get VPN configuration from node');
     } catch (error) {
-      console.error('Error getting VPN configuration:', error);
+      console.error('❌ Error getting VPN configuration:', error);
       throw new Error('Failed to connect to VPN node. Please check your internet connection.');
     }
   }
 
+  private async retryOperation<T>(
+    operation: () => Promise<T>,
+    maxRetries: number = 3,
+    delay: number = 1000
+  ): Promise<T> {
+    let lastError: any;
+    
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        if (i > 0) {
+          console.log(`🔄 Retry attempt ${i + 1}/${maxRetries}...`);
+        }
+        return await operation();
+      } catch (error: any) {
+        lastError = error;
+        console.log(`⚠️ Attempt ${i + 1} failed:`, error.message);
+        // Only retry on network-related errors
+        if (!error.message?.includes('Network Error') && 
+            !error.code?.includes('ERR_NETWORK')) {
+          throw error;
+        }
+        if (i < maxRetries - 1) {
+          const waitTime = delay * (i + 1);
+          console.log(`⏳ Waiting ${waitTime/1000} seconds before next retry...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      }
+    }
+    
+    throw lastError;
+  }
+
   public async deletePeer(nodeIP: string, userAddress: string): Promise<void> {
     try {
+      console.log('🔄 Starting peer deletion process...');
+      
       // First deactivate the VPN tunnel through the tray app
+      console.log('📡 Sending deactivate command to tray app...');
       await webSocketService.deactivateVPN();
+      console.log('✅ VPN tunnel deactivated successfully');
 
       // Then clean up the peer on the server side with retry mechanism
       const nodeUrl = `http://${nodeIP}:8000`;
-      console.log('Deleting peer from VPN node:', nodeUrl);
+      console.log('📡 Deleting peer from VPN node:', nodeUrl);
       
       await this.retryOperation(async () => {
         await axios.post(`${nodeUrl}/delete-peer`, {
@@ -115,11 +137,11 @@ export class VPNConnectionService {
       });
       
       this.currentConnection = null;
-      console.log('Peer deleted successfully');
+      console.log('✅ Peer deleted successfully');
     } catch (error) {
       // If we fail to delete the peer on the server side, but already deactivated locally,
       // we'll log the error but not throw - the local cleanup is more important
-      console.error('Failed to delete peer:', error);
+      console.error('⚠️ Failed to delete peer:', error);
       this.currentConnection = null;
       // Don't throw here - we've already cleaned up locally
     }

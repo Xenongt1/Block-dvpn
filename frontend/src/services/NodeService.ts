@@ -1,7 +1,7 @@
 import io from 'socket.io-client';
 import axios from 'axios';
 
-// Use environment variables for API and WebSocket URLs
+// Constants
 const API_URL = process.env.REACT_APP_API_URL || 'https://vpn-backend-esxb.onrender.com/api';
 const WS_URL = process.env.REACT_APP_WS_URL || 'wss://vpn-backend-esxb.onrender.com';
 
@@ -12,11 +12,7 @@ const socket = io(WS_URL, {
   reconnectionDelayMax: 5000,
   timeout: 20000,
   autoConnect: true,
-  forceNew: true,
-  path: '/socket.io/',
-  auth: {
-    credentials: 'include'
-  }
+  forceNew: true
 });
 
 // Add connection event listeners
@@ -139,22 +135,19 @@ class NodeService {
     }
   }
 
-  // Get node details
+  // Add this new function to get node details
   async getNodeDetails(address: string): Promise<{ friendlyName: string; country: string } | null> {
     try {
       console.log(`Fetching details for node: ${address}`);  // Debug log
       const response = await axios.get(`${API_URL}/nodes/${address}`);
       console.log(`API Response:`, response.data);  // Debug log
       return {
-        friendlyName: response.data.friendly_name || 'Hold on there',
-        country: response.data.country || 'Hold on there'
+        friendlyName: response.data.friendly_name,
+        country: response.data.country
       };
     } catch (error) {
       console.error('Error fetching node details:', error);
-      return {
-        friendlyName: 'Hold on there',
-        country: 'Hold on there'
-      };
+      return null;
     }
   }
 }

@@ -57,51 +57,45 @@ export class VPNConnectionService {
   }
 
   public async connectToNode(nodeAddress: string, nodeIP: string, userAddress: string): Promise<VPNConfig> {
-    try {
-      console.log('Getting VPN configuration from node:', { nodeAddress, nodeIP, userAddress });
+    console.log('Getting VPN configuration from node:', { nodeAddress, nodeIP, userAddress });
 
-      // Construct the node's API URL
-      const nodeApiUrl = `http://${nodeIP}:8000/generate-peer`;
-      
-      // Call the node's API to generate peer configuration
-      const response = await this.retryOperation(async () => {
-        const result = await axios.post(nodeApiUrl, {
-          user_id: userAddress
-        }, {
-          timeout: 10000 // 10 second timeout
+    try {
+      // Try HTTPS first
+      try {
+        const response = await this.retryOperation(async () => {
+          return await axios.post(`https://${nodeIP}:8000/generate-peer`, {
+            user_id: userAddress
+          }, {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 5000
+          });
         });
 
-        if (!result.data || !result.data.config) {
-          throw new Error('Invalid configuration received from node');
+        if (response.status === 200) {
+          return response.data;
         }
+      } catch (httpsError) {
+        console.log('HTTPS attempt failed, trying HTTP:', httpsError);
+        
+        // Try HTTP as fallback
+        const response = await this.retryOperation(async () => {
+          return await axios.post(`http://${nodeIP}:8000/generate-peer`, {
+            user_id: userAddress
+          }, {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 5000
+          });
+        });
 
-        return result;
-      });
-
-      // Send the configuration to the tray app
-      const filename = `vpn-config-${nodeAddress}.conf`;
-      await webSocketService.activateVPN(response.data.config, filename);
-
-      this.currentConnection = nodeAddress;
-
-      return {
-        config: response.data.config,
-        nodeAddress,
-        nodeIP
-      };
-    } catch (error: any) {
-      console.error('Error getting VPN configuration:', error);
-      
-      // Handle specific error cases
-      if (error.response?.status === 403) {
-        throw new Error('No active subscription found. Please subscribe to use the VPN service.');
-      } else if (error.response?.status === 401) {
-        throw new Error('Authentication failed. Please reconnect your wallet.');
-      } else if (error.message.includes('Network Error')) {
-        throw new Error('Failed to connect to VPN node. Please check your internet connection.');
+        if (response.status === 200) {
+          return response.data;
+        }
       }
-      
-      throw new Error(error.response?.data?.error || 'Failed to get VPN configuration from node');
+
+      throw new Error('Failed to get VPN configuration from node');
+    } catch (error) {
+      console.error('Error getting VPN configuration:', error);
+      throw new Error('Failed to connect to VPN node. Please check your internet connection.');
     }
   }
 

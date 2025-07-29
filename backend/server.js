@@ -8,7 +8,6 @@ const fs = require('fs').promises;
 const path = require('path');
 const { spawn } = require('child_process');
 const axios = require('axios');
-const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const app = express();
 const server = http.createServer(app);
@@ -70,33 +69,6 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
-
-// Proxy middleware for VPN nodes
-app.use('/vpn-node', createProxyMiddleware({
-  router: async (req) => {
-    const nodeIP = req.body?.node_ip;
-    if (!nodeIP) {
-      throw new Error('Node IP is required in request body');
-    }
-    return `http://${nodeIP}:8000`;
-  },
-  changeOrigin: true,
-  secure: false,
-  ws: true,
-  xfwd: true,
-  onProxyReq: (proxyReq, req, res) => {
-    if (req.body) {
-      const bodyData = JSON.stringify(req.body);
-      proxyReq.setHeader('Content-Type', 'application/json');
-      proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
-      proxyReq.write(bodyData);
-    }
-  },
-  onError: (err, req, res) => {
-    console.error('Proxy error:', err);
-    res.status(500).json({ error: 'Failed to connect to VPN node' });
-  }
-}));
 
 // Initialize SQLite database
 const dbPath = path.join(__dirname, 'dvpn.db');

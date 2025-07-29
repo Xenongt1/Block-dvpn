@@ -5,6 +5,10 @@ import axios from 'axios';
 const API_URL = process.env.REACT_APP_API_URL || 'https://vpn-backend-esxb.onrender.com/api';
 const WS_URL = process.env.REACT_APP_WS_URL || 'wss://vpn-backend-esxb.onrender.com';
 
+// Add debug logs
+console.log('API_URL:', API_URL);
+console.log('WS_URL:', WS_URL);
+
 const socket = io(WS_URL, {
   transports: ['websocket', 'polling'],
   reconnectionAttempts: 5,

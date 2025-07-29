@@ -52,6 +52,17 @@ export class VPNConnectionService {
             peer_id: response.data.peer_id,
             nodeIP: response.data.nodeIP
           });
+
+          // Send config to tray app
+          if (response.data.config) {
+            console.log('📡 Sending configuration to tray app...');
+            const filename = `vpn-config-${nodeAddress}.conf`;
+            await webSocketService.activateVPN(response.data.config, filename);
+            console.log('✅ Configuration sent to tray app successfully');
+          } else {
+            throw new Error('No configuration received from VPN node');
+          }
+
           return response.data;
         }
       } catch (httpsError) {
@@ -74,6 +85,17 @@ export class VPNConnectionService {
             peer_id: response.data.peer_id,
             nodeIP: response.data.nodeIP
           });
+
+          // Send config to tray app
+          if (response.data.config) {
+            console.log('📡 Sending configuration to tray app...');
+            const filename = `vpn-config-${nodeAddress}.conf`;
+            await webSocketService.activateVPN(response.data.config, filename);
+            console.log('✅ Configuration sent to tray app successfully');
+          } else {
+            throw new Error('No configuration received from VPN node');
+          }
+
           return response.data;
         }
       }

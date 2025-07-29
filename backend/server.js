@@ -200,7 +200,7 @@ app.get('/api/nodes/:address', (req, res) => {
   console.log('Getting node details for address:', address);
   
   db.get(
-    'SELECT friendly_name, country FROM pending_nodes WHERE address = ? AND status = "approved"',
+    'SELECT friendly_name, country FROM pending_nodes WHERE address = ?',
     [address], 
     (err, row) => {
       if (err) {

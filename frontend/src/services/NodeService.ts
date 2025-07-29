@@ -12,7 +12,8 @@ const socket = io(WS_URL, {
   reconnectionDelayMax: 5000,
   timeout: 20000,
   autoConnect: true,
-  forceNew: true
+  forceNew: true,
+  path: '/socket.io/'
 });
 
 // Add connection event listeners
@@ -141,10 +142,13 @@ class NodeService {
       console.log(`Fetching details for node: ${address}`);  // Debug log
       const response = await axios.get(`${API_URL}/nodes/${address}`);
       console.log(`API Response:`, response.data);  // Debug log
-      return {
-        friendlyName: response.data.friendly_name,
-        country: response.data.country
-      };
+      if (response.data) {
+        return {
+          friendlyName: response.data.friendly_name,
+          country: response.data.country
+        };
+      }
+      return null;
     } catch (error) {
       console.error('Error fetching node details:', error);
       return null;

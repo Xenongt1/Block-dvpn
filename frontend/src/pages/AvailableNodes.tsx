@@ -191,7 +191,7 @@ const NodeCard = ({ node, onConnect, index }: { node: VPNNode, onConnect: (addre
                     Node Name
                   </Typography>
                   <Typography variant="h6">
-                    {node.friendlyName || 'Hold on there'} - {node.country || 'Hold on there'}
+                    {node.friendlyName || node.address} {node.country ? `- ${node.country}` : ''}
                   </Typography>
                 </Box>
               </Stack>

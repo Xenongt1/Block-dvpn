@@ -12,25 +12,33 @@ const axios = require('axios');
 const app = express();
 const server = http.createServer(app);
 
+const corsOrigin = process.env.CORS_ORIGIN || 'https://vpn-frontend-esxb.onrender.com';
+
 // Configure Socket.IO with proper CORS and transport options
 const io = new Server(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
+    origin: corsOrigin,
+    methods: ["GET", "POST", "OPTIONS"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"]
   },
   transports: ['websocket', 'polling'],
   pingTimeout: 60000,
-  pingInterval: 25000
+  pingInterval: 25000,
+  path: '/socket.io/',
+  allowEIO3: true,
+  maxHttpBufferSize: 1e8
 });
 
 // Configure Express CORS
 app.use(cors({
-  origin: "*",
+  origin: corsOrigin,
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  maxAge: 86400,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
 app.use(express.json());
@@ -192,15 +200,15 @@ app.get('/api/nodes/:address', (req, res) => {
   console.log('Getting node details for address:', address);
   
   db.get(
-    'SELECT friendly_name, country FROM pending_nodes WHERE address = ?',
-    [address],
+    'SELECT friendly_name, country FROM pending_nodes WHERE address = ? AND status = "approved"',
+    [address], 
     (err, row) => {
       if (err) {
         console.error('Database error:', err);
         res.status(500).json({ error: err.message });
         return;
       }
-      
+
       console.log('Node details found:', row);
       
       if (row) {

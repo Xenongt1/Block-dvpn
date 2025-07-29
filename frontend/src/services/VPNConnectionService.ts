@@ -149,17 +149,38 @@ export class VPNConnectionService {
       console.log('✅ VPN tunnel deactivated successfully');
 
       // Then clean up the peer on the server side with retry mechanism
-      const nodeUrl = `http://${nodeIP}:8000`;
-      console.log('📡 Deleting peer from VPN node:', nodeUrl);
+      console.log('📡 Deleting peer from VPN node:', nodeIP);
       
-      await this.retryOperation(async () => {
-        await axios.post(`${nodeUrl}/delete-peer`, {
-          user_id: userAddress
+      // Try HTTPS first
+      try {
+        console.log('📡 Attempting HTTPS delete...');
+        await this.retryOperation(async () => {
+          await axios.post(`https://${nodeIP}:8000/delete-peer`, {
+            user_id: userAddress
+          }, {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 5000
+          });
         });
-      });
+        console.log('✅ Peer deleted successfully via HTTPS');
+      } catch (httpsError) {
+        console.log('⚠️ HTTPS delete failed, trying HTTP:', httpsError);
+        
+        // Try HTTP as fallback
+        console.log('📡 Attempting HTTP delete...');
+        await this.retryOperation(async () => {
+          await axios.post(`http://${nodeIP}:8000/delete-peer`, {
+            user_id: userAddress
+          }, {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 5000
+          });
+        });
+        console.log('✅ Peer deleted successfully via HTTP');
+      }
       
       this.currentConnection = null;
-      console.log('✅ Peer deleted successfully');
+      console.log('✅ Peer deletion completed');
     } catch (error) {
       // If we fail to delete the peer on the server side, but already deactivated locally,
       // we'll log the error but not throw - the local cleanup is more important

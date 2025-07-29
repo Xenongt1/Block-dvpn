@@ -191,7 +191,8 @@ const NodeCard = ({ node, onConnect, index }: { node: VPNNode, onConnect: (addre
                     Node Name
                   </Typography>
                   <Typography variant="h6">
-                    {node.friendlyName || node.address} {node.country ? `- ${node.country}` : ''}
+                    {node.friendlyName || `Node ${node.address.slice(0, 6)}...${node.address.slice(-4)}`}
+                    {node.country && ` - ${node.country}`}
                   </Typography>
                 </Box>
               </Stack>
@@ -447,9 +448,9 @@ export const AvailableNodes: React.FC = () => {
             uptime: 99.9,
             reliability: 95 + Math.floor(Math.random() * 5),
             totalScore: Number(details[2]),
-            // Use additional details if available, otherwise use placeholder
-            friendlyName: additionalDetails?.friendlyName || 'Hold on there',
-            country: additionalDetails?.country || 'Hold on there'
+            // Use additional details if available, otherwise use null
+            friendlyName: additionalDetails?.friendlyName || null,
+            country: additionalDetails?.country || null
           };
           console.log(`Final node object for ${address}:`, node);  // Debug log
           return node;

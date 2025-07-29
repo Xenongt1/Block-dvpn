@@ -218,8 +218,8 @@ app.get('/api/nodes/:address', (req, res) => {
         });
       } else {
         res.json({
-          friendly_name: 'Hold on there',
-          country: 'Hold on there'
+          friendly_name: null,
+          country: null
         });
       }
     }

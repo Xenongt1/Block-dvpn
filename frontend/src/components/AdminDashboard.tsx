@@ -69,7 +69,25 @@ function TabPanel(props: TabPanelProps) {
       {...other}
     >
       {value === index && (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ 
+          p: 3,
+          maxHeight: 'calc(100vh - 200px)',
+          overflowY: 'auto',
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: 'rgba(0, 0, 0, 0.1)',
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: 'rgba(255, 255, 255, 0.2)',
+            borderRadius: '4px',
+            '&:hover': {
+              background: 'rgba(255, 255, 255, 0.3)',
+            },
+          },
+        }}>
           {children}
         </Box>
       )}
@@ -468,15 +486,16 @@ export const AdminDashboard = (): JSX.Element => {
   };
 
   const renderNodeManagement = () => (
-    <Box>
-      <Table>
+  <Box>
+    <Box sx={{ overflowX: 'auto' }}>
+      <Table sx={{ minWidth: 1000 }}>
         <TableHead>
           <TableRow>
-            <TableCell>Address</TableCell>
-            <TableCell>IP Address</TableCell>
-            <TableCell>Owner</TableCell>
-            <TableCell>Status</TableCell>
-            <TableCell>Actions</TableCell>
+            <TableCell width="25%">Address</TableCell>
+            <TableCell width="20%">IP Address</TableCell>
+            <TableCell width="25%">Owner</TableCell>
+            <TableCell width="15%">Status</TableCell>
+            <TableCell width="15%">Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -506,35 +525,38 @@ export const AdminDashboard = (): JSX.Element => {
         </TableBody>
       </Table>
     </Box>
-  );
+  </Box>
+);
+
 
   const renderPendingNodes = () => (
-    <Box>
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6">Pending Node Requests</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => setRegisterDialog(true)}
-          sx={{
-            background: 'linear-gradient(45deg, #2196f3, #1976d2)',
-            '&:hover': {
-              background: 'linear-gradient(45deg, #1976d2, #1565c0)'
-            }
-          }}
-        >
-          Register New Node
-        </Button>
-      </Box>
-      <Table>
+  <Box>
+    <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Typography variant="h6">Pending Node Requests</Typography>
+      <Button
+        variant="contained"
+        startIcon={<AddIcon />}
+        onClick={() => setRegisterDialog(true)}
+        sx={{
+          background: 'linear-gradient(45deg, #2196f3, #1976d2)',
+          '&:hover': {
+            background: 'linear-gradient(45deg, #1976d2, #1565c0)'
+          }
+        }}
+      >
+        Register New Node
+      </Button>
+    </Box>
+    <Box sx={{ overflowX: 'auto' }}>
+      <Table sx={{ minWidth: 1200 }}>
         <TableHead>
           <TableRow>
-            <TableCell>Address</TableCell>
-            <TableCell>IP Address</TableCell>
-            <TableCell>Owner</TableCell>
-            <TableCell>Details</TableCell>
-            <TableCell>Submission Time</TableCell>
-            <TableCell>Actions</TableCell>
+            <TableCell width="20%">Address</TableCell>
+            <TableCell width="15%">IP Address</TableCell>
+            <TableCell width="20%">Owner</TableCell>
+            <TableCell width="15%">Details</TableCell>
+            <TableCell width="15%">Submission Time</TableCell>
+            <TableCell width="15%">Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -586,7 +608,9 @@ export const AdminDashboard = (): JSX.Element => {
         </TableBody>
       </Table>
     </Box>
-  );
+  </Box>
+);
+
 
   const renderPerformanceMetrics = () => (
     <Grid container spacing={3}>
